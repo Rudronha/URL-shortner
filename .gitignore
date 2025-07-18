@@ -1,0 +1,43 @@
+# Binaries and executables
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Go build output
+/bin/
+/build/
+/dist/
+
+# Go modules
+vendor/
+
+# Dependency directories (node, etc. if frontend exists)
+node_modules/
+
+# Logs
+*.log
+*.tmp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE/editor settings
+.vscode/
+.idea/
+*.swp
+
+# Environment & configuration files
+.env
+.env.local
+.env.*
+
+# Database dumps
+*.sql
+
+# Backup files
+*~
