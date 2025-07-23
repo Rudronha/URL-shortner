@@ -1,8 +1,3 @@
-Here is your **`README.md`** file for the URL Shortener project:
-
----
-
-```markdown
 # URL Shortener (Go + PostgreSQL)
 
 A simple URL shortener built using **Go**, **Gin**, **GORM**, and **PostgreSQL**.
