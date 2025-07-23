@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"log"
 	"fmt"
 	"net/http"
 	"url-shortener/database"
@@ -39,7 +40,8 @@ func RedirectURL(c *gin.Context) {
 	code := c.Param("code")
 	var url models.URL
 
-	if err := database.DB.First(&url, "short_code = ?", code).Error; err != nil {
+	if err := database.DB.Where("short_code = ?", code).Take(&url).Error; err != nil {
+		log.Printf("Database error for short_code %s: %v", code, err)
 		c.JSON(http.StatusNotFound, gin.H{"error": "URL not found"})
 		return
 	}

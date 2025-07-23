@@ -8,6 +8,7 @@ import (
 )
 
 func main() {
+	gin.SetMode(gin.ReleaseMode)
 	database.ConnectDB()
 
 	router := gin.Default()
