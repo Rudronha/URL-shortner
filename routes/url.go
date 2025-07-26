@@ -41,34 +41,40 @@ func ShortenURL(c *gin.Context) {
 func RedirectURL(c *gin.Context) {
 	code := c.Param("code")
 	start := time.Now()
-	
-	// Check Redis cache
-    originalURL, err := cache.GetURL(code)
-	log.Printf("Redis query for %s took %v", code, time.Since(start))
 
-    if err == nil {
-        // Cache hit
-        c.Redirect(http.StatusFound, originalURL)
-        return
-    }
-    if err != redis.Nil {
-        // Log Redis errors but proceed to database
-        log.Printf("Redis error for short_code %s: %v", code, err)
-    }
+	// 1. Check in-memory cache
+	if originalURL, found := cache.GetMemory(code); found {
+		log.Printf("Memory cache hit for %s (took %v)", code, time.Since(start))
+		c.Redirect(http.StatusFound, originalURL)
+		return
+	}
 
-	// Cache miss, query the database
+	// 2. Check Redis cache
+	originalURL, err := cache.GetURL(code)
+	if err == nil {
+		log.Printf("Redis cache hit for %s (took %v)", code, time.Since(start))
+		cache.SetMemory(code, originalURL) // store in-memory
+		c.Redirect(http.StatusFound, originalURL)
+		return
+	}
+	if err != redis.Nil {
+		log.Printf("Redis error for short_code %s: %v", code, err)
+	}
+
+	// 3. Fallback to DB
 	var url models.URL
 	start = time.Now()
 	if err := database.DB.Where("short_code = ?", code).Take(&url).Error; err != nil {
-		log.Printf("Database error for short_code %s: %v, took %v", code, err, time.Since(start))
+		log.Printf("DB miss for %s (took %v)", code, time.Since(start))
 		c.JSON(http.StatusNotFound, gin.H{"error": "URL not found"})
 		return
 	}
 
-	// Cache the result
-    if err := cache.SetURL(code, url.OriginalURL, 1*time.Hour); err != nil {
-        log.Printf("Failed to cache short_code %s: %v", code, err)
-    }
+	// 4. Cache result in both Redis and memory
+	cache.SetMemory(code, url.OriginalURL)
+	if err := cache.SetURL(code, url.OriginalURL, 1*time.Hour); err != nil {
+		log.Printf("Failed to cache in Redis: %v", err)
+	}
 
 	c.Redirect(http.StatusFound, url.OriginalURL)
 }

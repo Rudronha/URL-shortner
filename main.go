@@ -26,12 +26,9 @@ func main() {
 
 	gin.SetMode(gin.ReleaseMode)
 	database.ConnectDB()
-	cache.InitRedis() // Initialize Redis
+	cache.InitRedis()
+	cache.InitLRUCache(1000) // e.g., store up to 10k hot URLs
 	router := gin.Default()
-	router.Use(func(c *gin.Context) {
-		c.Next()
-		log.Printf("Request: %s %s, Status: %d", c.Request.Method, c.Request.URL, c.Writer.Status())
-	})
 	router.POST("/shorten", routes.ShortenURL)
 	router.GET("/:code", routes.RedirectURL)
 	router.GET("/health", routes.Health) // Add health endpoint

@@ -43,8 +43,8 @@ func ConnectDB() {
     if err != nil {
         log.Fatal("Failed to get database instance: ", err)
     }
-    sqlDB.SetMaxOpenConns(100)
-    sqlDB.SetMaxIdleConns(10)
+    sqlDB.SetMaxOpenConns(50)
+    sqlDB.SetMaxIdleConns(25)
 
     // Auto-migrate table structure
     if err := DB.AutoMigrate(&models.URL{}); err != nil {
