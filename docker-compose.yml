@@ -1,0 +1,40 @@
+version: '3.8'
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${API_PORT:-8080}:8080" # Use API_PORT from .env, default to 8080
+    env_file:
+      - .env
+    depends_on:
+      - cache
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:${API_PORT:-8080}/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  cache:
+    image: redis:7-alpine
+    volumes:
+      - cache-data:/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  cache-data:
